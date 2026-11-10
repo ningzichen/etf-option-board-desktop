@@ -28,6 +28,18 @@ WHITELIST = ("app.py", "config.py", "paths.py", "services", "routers", "web/dist
 IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "node_modules", ".pytest_cache")
 
 
+def utf8_stdio() -> None:
+    """Windows 的 CI 和控制台默认 cp1252/GBK，print 中文直接 UnicodeEncodeError。
+
+    （GitHub 的 windows runner 就是这么挂的，别问为什么。）
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+
 def run(*cmd: str, cwd: Path | None = None) -> str:
     print("$", " ".join(cmd))
     out = subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
@@ -85,6 +97,7 @@ def stage(src: Path, commit: str) -> None:
 
 
 def main() -> None:
+    utf8_stdio()
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", default="https://github.com/NIO-SAI/etf-option-board")
     ap.add_argument("--ref", default="master")

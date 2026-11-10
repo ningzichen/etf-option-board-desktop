@@ -18,6 +18,9 @@ on:
     tags: ["v*"]
 
 env:
+  # Windows runner 的默认输出编码是 cp1252，中文日志会直接崩
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
   # tag 触发时 inputs 为空，靠 || 兜底成官方 master
   CORE_REPO: ${{ inputs.core_repo || 'https://github.com/NIO-SAI/etf-option-board' }}
   CORE_REF: ${{ inputs.core_ref || 'master' }}
