@@ -81,7 +81,7 @@ bash scripts/build_mac.sh
 不想交 $99 的话，ad-hoc 那档够自己用；要发给不懂电脑的人，建议还是走公证。
 
 **Intel / Apple Silicon**：两个架构要分别打。本仓库带了 GitHub Actions，
-`.github/workflows/build.yml` 会在 `macos-13`（x64）和 `macos-14`（arm64）上各打一份，
+`.github/workflows/build.yml` 会在 `macos-15-intel`（x64）和 `macos-15`（arm64）上各打一份，
 手动触发（Actions → build → Run workflow）也行，不用自己找 Mac。
 
 ---

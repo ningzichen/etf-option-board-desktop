@@ -48,17 +48,16 @@ jobs:
           name: EtfBoard-windows-x64
           path: dist/EtfBoard/**
 
-  # macOS：Intel（macos-13）与 Apple Silicon（macos-14）各打一份，
+  # macOS：Intel 与 Apple Silicon 各打一份（macos-13/14 已退役，用 -15 系列），
   # 不合并成 universal2 —— 双架构要重装所有依赖，收益不如两个包直接
   macos:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-13
+          - runner: macos-15-intel     # Intel x64（macos-13/14 已下线）
             arch: x64
-          - runner: macos-14
-            arch: arm64
+          - runner: macos-15           # Apple Silicon arm64
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
