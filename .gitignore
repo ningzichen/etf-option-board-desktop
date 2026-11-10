@@ -1,0 +1,9 @@
+.venv/
+build/
+dist/
+__pycache__/
+*.pyc
+*.log
+
+# 本机路径配置，因人而异；新环境从 desktop.example.json 复制
+desktop.json

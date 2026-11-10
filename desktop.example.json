@@ -1,0 +1,9 @@
+{
+  "core_dir": "D:\\GitHub\\etf-option-board",
+  "core_python": "D:\\GitHub\\etf-option-board\\.venv\\Scripts\\python.exe",
+  "port": 6799,
+  "title": "缅A决策看板",
+  "width": 1500,
+  "height": 940,
+  "minimize_to_tray": true
+}
