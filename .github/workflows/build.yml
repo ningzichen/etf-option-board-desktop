@@ -1,11 +1,15 @@
 name: build
 
 # 什么时候跑：
-#   1. 手动点（Actions → build → Run workflow），指定主项目 ref
+#   1. 手动点（Actions → build → Run workflow），可指定主项目仓库/ref
 #   2. 打 tag（v1.0.0）
 on:
   workflow_dispatch:
     inputs:
+      core_repo:
+        description: "主项目仓库（官方默认；测未合并的分支时填 fork 地址）"
+        default: "https://github.com/NIO-SAI/etf-option-board"
+        required: true
       core_ref:
         description: "主项目分支/tag/commit"
         default: master
@@ -13,8 +17,13 @@ on:
   push:
     tags: ["v*"]
 
+env:
+  # tag 触发时 inputs 为空，靠 || 兜底成官方 master
+  CORE_REPO: ${{ inputs.core_repo || 'https://github.com/NIO-SAI/etf-option-board' }}
+  CORE_REF: ${{ inputs.core_ref || 'master' }}
+
 jobs:
-  # Windows：本机已验证过，产出 zip 解压即用
+  # Windows：本机已验证过，产物解压即用
   windows:
     runs-on: windows-latest
     steps:
@@ -26,7 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: 取主项目代码
-        run: python scripts/prepare_core.py --ref ${{ inputs.core_ref || 'master' }}
+        run: python scripts/prepare_core.py --repo "${{ env.CORE_REPO }}" --ref "${{ env.CORE_REF }}"
       - name: 打包
         run: python -m PyInstaller packaging/etf_board.spec --noconfirm
       - uses: actions/upload-artifact@v4
@@ -55,7 +64,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: 取主项目代码
-        run: python scripts/prepare_core.py --ref ${{ inputs.core_ref || 'master' }}
+        run: python scripts/prepare_core.py --repo "${{ env.CORE_REPO }}" --ref "${{ env.CORE_REF }}"
       - name: 打包
         run: python -m PyInstaller packaging/etf_board.spec --noconfirm
       - name: ad-hoc 签名
