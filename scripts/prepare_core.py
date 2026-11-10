@@ -48,6 +48,23 @@ def sync_source(repo: str, ref: str) -> tuple[Path, str]:
     return CORE_SRC, run("git", "rev-parse", "HEAD", cwd=CORE_SRC)
 
 
+def build_web(src: Path) -> None:
+    """在主项目源码里构建前端。
+
+    主项目的 web/dist 是 gitignore 的，仓库里没有现成产物；CI 上必须现建，
+    否则打出来的包打开就是白屏。
+    """
+    web = src / "web"
+    if not (web / "package.json").is_file():
+        sys.exit(f"主项目缺少 {web}/package.json，没法构建前端")
+    npm = "npm.cmd" if sys.platform == "win32" else "npm"
+    if (web / "package-lock.json").is_file():
+        run(npm, "ci", cwd=web)
+    else:
+        run(npm, "install", cwd=web)
+    run(npm, "run", "build", cwd=web)
+
+
 def stage(src: Path, commit: str) -> None:
     """按白名单拷到 build/core（PyInstaller 会把它当数据目录打进去）。"""
     if CORE_DST.exists():
@@ -72,6 +89,8 @@ def main() -> None:
     ap.add_argument("--repo", default="https://github.com/NIO-SAI/etf-option-board")
     ap.add_argument("--ref", default="master")
     ap.add_argument("--local", default="", help="用本地仓库代替 clone（调试用，不拷 .git）")
+    ap.add_argument("--build-web", action="store_true",
+                    help="先构建前端再打包（CI 必须加：web/dist 不在仓库里）")
     args = ap.parse_args()
 
     if args.local:
@@ -81,6 +100,10 @@ def main() -> None:
         commit = run("git", "rev-parse", "HEAD", cwd=src) if (src / ".git").is_dir() else "local"
     else:
         src, commit = sync_source(args.repo, args.ref)
+
+    if args.build_web:
+        build_web(src)
+
     stage(src, commit)
 
     # 硬依赖：没有 paths.py 就没有 ETF_DATA_DIR，打包版会把数据往安装目录里写
@@ -93,8 +116,10 @@ def main() -> None:
         )
 
     if not (CORE_DST / "web" / "dist" / "index.html").is_file():
-        print("[warn] 主项目没有构建好的 web/dist，打包后前端会 404；"
-              "先在主项目里跑 web/build.sh")
+        sys.exit(
+            "主项目没有构建好的 web/dist，打出来会白屏。\n"
+            "加 --build-web 现建（需要 node/npm），或先在主项目里跑 web/build.sh"
+        )
 
 
 if __name__ == "__main__":
