@@ -84,6 +84,19 @@ bash scripts/build_mac.sh
 `.github/workflows/build.yml` 会在 `macos-15-intel`（x64）和 `macos-15`（arm64）上各打一份，
 手动触发（Actions → build → Run workflow）也行，不用自己找 Mac。
 
+手动触发时有两个输入：
+
+| 输入 | 默认 | 什么时候改 |
+| --- | --- | --- |
+| `core_repo` | `https://github.com/NIO-SAI/etf-option-board` | 要打还没合并的分支时，填 fork 地址 |
+| `core_ref` | `master` | 填分支 / tag / commit |
+
+跑完在 Actions 页面那次运行底部下产物：`EtfBoard-windows-x64`（目录，解压即用）、
+`EtfBoard-macos-x64.zip`、`EtfBoard-macos-arm64.zip`（解压出 `EtfBoard.app`）。
+
+> 产物里的前端是 CI 现场构建的 —— 主项目的 `web/dist` 不入库，`prepare_core.py --build-web`
+> 会在打包前跑 `npm ci && npm run build`；缺 `index.html` 直接报错，不会打出白屏包。
+
 ---
 
 ## 装到别人机器上
