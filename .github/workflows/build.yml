@@ -30,10 +30,10 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: "20" }
       - name: 装依赖
         run: |
@@ -43,7 +43,7 @@ jobs:
         run: python scripts/prepare_core.py --repo "${{ env.CORE_REPO }}" --ref "${{ env.CORE_REF }}" --build-web
       - name: 打包
         run: python -m PyInstaller packaging/etf_board.spec --noconfirm
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: EtfBoard-windows-x64
           path: dist/EtfBoard/**
@@ -61,10 +61,10 @@ jobs:
             arch: arm64
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with: { python-version: "3.12" }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: "20" }
       - name: 装依赖
         run: |
@@ -78,7 +78,7 @@ jobs:
         run: codesign --force --deep --sign - dist/EtfBoard.app
       - name: 压缩（保住可执行位和符号链接）
         run: ditto -c -k --keepParent dist/EtfBoard.app EtfBoard-macos-${{ matrix.arch }}.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: EtfBoard-macos-${{ matrix.arch }}
           path: EtfBoard-macos-${{ matrix.arch }}.zip
