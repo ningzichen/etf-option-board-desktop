@@ -1,0 +1,68 @@
+name: build
+
+# 什么时候跑：
+#   1. 手动点（Actions → build → Run workflow），指定主项目 ref
+#   2. 打 tag（v1.0.0）
+on:
+  workflow_dispatch:
+    inputs:
+      core_ref:
+        description: "主项目分支/tag/commit"
+        default: master
+        required: true
+  push:
+    tags: ["v*"]
+
+jobs:
+  # Windows：本机已验证过，产出 zip 解压即用
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: 装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: 取主项目代码
+        run: python scripts/prepare_core.py --ref ${{ inputs.core_ref || 'master' }}
+      - name: 打包
+        run: python -m PyInstaller packaging/etf_board.spec --noconfirm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EtfBoard-windows-x64
+          path: dist/EtfBoard/**
+
+  # macOS：Intel（macos-13）与 Apple Silicon（macos-14）各打一份，
+  # 不合并成 universal2 —— 双架构要重装所有依赖，收益不如两个包直接
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
+            arch: x64
+          - runner: macos-14
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: 装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: 取主项目代码
+        run: python scripts/prepare_core.py --ref ${{ inputs.core_ref || 'master' }}
+      - name: 打包
+        run: python -m PyInstaller packaging/etf_board.spec --noconfirm
+      - name: ad-hoc 签名
+        run: codesign --force --deep --sign - dist/EtfBoard.app
+      - name: 压缩（保住可执行位和符号链接）
+        run: ditto -c -k --keepParent dist/EtfBoard.app EtfBoard-macos-${{ matrix.arch }}.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EtfBoard-macos-${{ matrix.arch }}
+          path: EtfBoard-macos-${{ matrix.arch }}.zip
